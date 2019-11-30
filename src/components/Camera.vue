@@ -1,50 +1,77 @@
 <template>
   <div>
-    <video autoplay width="600" height="400"></video>
-    <el-button id="getUserMediaButton" @click="onGetUserMediaButtonClick()">get user media</el-button>
-    <canvas id="grabFrameCanvas" width="600" height="400"></canvas>
-    <el-button id="grabFrameButton" @click="onGrabFrameButtonClick()">grab frame</el-button>
+    <ElRow>
+      <ElCol :span="12">
+        <div id="p5Canvas"></div>
+      </ElCol>
+    </ElRow>
+    <ElRow>
+      <ElCol :span="1">
+        <ElButton type="primary" @click="incScale">放大</ElButton>
+      </ElCol>
+      <ElCol :span="8">
+        <ElButton type="primary" @click="decScale">缩小</ElButton>
+      </ElCol>
+      <ElCol :span="1">
+        <ElButton type="primary" @click="detection">检测</ElButton>
+      </ElCol>
+      <ElCol :span="1">
+        <ElButton type="primary" @click="next">继续</ElButton>
+      </ElCol>
+    </ElRow>
   </div>
 </template>
 
 <script>
+let sketch;
 export default {
   name: 'Camera',
   data() {
     return {
-      imageCapture: {}
+      ans: null
     }
   },
   created() {
-    // document.querySelector('video').addEventListener('play', function() {
-    //   document.querySelector('#grabFrameButton').disabled = false;
-    // });
+  },
+  mounted() {
+    sketch = require('../js/sketch.js')
+    const P5 = require('p5')
+    new P5(sketch.main)
+    sketch.setGetImgData(this.getImgData);
   },
   methods: {
-      onGetUserMediaButtonClick() {
-        navigator.mediaDevices.getUserMedia({video: true}).then(mediaStream => {
-          document.querySelector('video').srcObject = mediaStream;
-          const track = mediaStream.getVideoTracks()[0];
-          this.imageCapture = new ImageCapture(track);
-          })
-      },
-      onGrabFrameButtonClick() {
-        this.imageCapture.grabFrame()
-        .then(imageBitmap => {
-          const canvas = document.querySelector('#grabFrameCanvas');
-          this.drawCanvas(canvas, imageBitmap);
-        })
-      },
-      drawCanvas(canvas, img) {
-        canvas.width = getComputedStyle(canvas).width.split('px')[0];
-        canvas.height = getComputedStyle(canvas).height.split('px')[0];
-        let ratio  = Math.min(canvas.width / img.width, canvas.height / img.height);
-        let x = (canvas.width - img.width * ratio) / 2;
-        let y = (canvas.height - img.height * ratio) / 2;
-        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-        canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height,
-            x, y, img.width * ratio, img.height * ratio);
-      }
+    incScale() {
+      sketch.incScale();
+    },
+    decScale() {
+      sketch.decScale();
+    },
+    getImgData(imgData) {
+      let data = {
+        "imageData": imgData
+      };
+      // window.console.log(data);
+      this.$http.post('/upload', data)
+        .then( res => {
+          window.console.log('res=>', res);
+          if (res.data.valid == false) {
+            alert('无法识别');
+            this.drawAns(res.data.letters);
+          } else {
+            this.drawAns(res.data.letters);
+          }       
+      })
+    },
+    detection() {
+      sketch.clear();
+      sketch.saveImg();
+    },
+    drawAns(letters) {
+        sketch.drawAns(letters);
+    },
+    next() {
+      sketch.clear();
+    }
   }
 }
 </script>
