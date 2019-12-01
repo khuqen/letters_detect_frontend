@@ -2,7 +2,10 @@
   <div>
     <ElRow>
       <ElCol :span="12">
-        <div id="p5Canvas"></div>
+        <div id="MainCanvas"></div>
+      </ElCol>
+      <ElCol :span="12">
+        <div id="SecCanvas"></div>
       </ElCol>
     </ElRow>
     <ElRow>
@@ -19,6 +22,11 @@
         <ElButton type="primary" @click="next">继续</ElButton>
       </ElCol>
     </ElRow>
+    <ul>
+      <li v-for="letter in this.ans" :key="letter.index">
+        {{ letter.class }}, {{ letter.score }}
+      </li>
+    </ul>
   </div>
 </template>
 
@@ -38,6 +46,7 @@ export default {
     const P5 = require('p5')
     new P5(sketch.main)
     sketch.setGetImgData(this.getImgData);
+    new P5(sketch.second)
   },
   methods: {
     incScale() {
@@ -55,9 +64,11 @@ export default {
         .then( res => {
           window.console.log('res=>', res);
           if (res.data.valid == false) {
-            alert('无法识别');
+            alert('识别不完整！！！');
+            this.ans = res.data.letters;
             this.drawAns(res.data.letters);
           } else {
+            this.ans = res.data.letters;
             this.drawAns(res.data.letters);
           }       
       })
