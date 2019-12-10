@@ -1,71 +1,100 @@
 <template>
   <div>
     <ElRow>
-      <ElCol :span="8">
-        <div id="SecCanvas"></div>
-      </ElCol>
-      <ElCol :span="8">
+      <ElCol :span="12">
         <div id="MainCanvas"></div>
       </ElCol>
-      <ElCol :span="8">
-        <el-table
-          :data="lessScoreAns"
-          height="500"
-          style="width: 100%">
-          <el-table-column
-            prop="no"
-            label="题号"
-            width="80">
-          </el-table-column>
-          <el-table-column
-            prop="class"
-            label="识别结果"
-            width="120">
-          </el-table-column>
-          <el-table-column
-            prop="score"
-            label="置信率"
-            width="120">
-          </el-table-column>
-          <el-table-column
-            label="确认"
-            width="120">
-            <template slot-scope="scope">
-              <el-button @click="confirm(scope.row)" size="small">确定</el-button>
-            </template>
-          </el-table-column>
-          <el-table-column
-            label="修改"
-            width="320">
-            <template slot-scope="scope">
-              <ElRow :gutter="20">
-                <ElCol :span="12">
-                  <el-input width="100" v-model="inputAns" placeholder="请输入正确结果"></el-input>
-                </ElCol>
-                <ElCol :span="4">
-                  <el-button @click="modify(scope.row, inputAns)" size="small">修改</el-button>
-                </ElCol>
-              </ElRow>
-            </template>
-          </el-table-column>
-        </el-table>
+      <ElCol :span="12">
+        <ElRow>
+          <ElCol :span="24">
+            <el-table
+              :data="lessScoreAns"
+              height="600"
+              style="width: 100%">
+              <el-table-column
+                prop="no"
+                label="题号"
+                width="80">
+              </el-table-column>
+              <el-table-column
+                prop="class"
+                label="识别结果"
+                width="120">
+              </el-table-column>
+              <el-table-column
+                prop="score"
+                label="置信率"
+                width="120">
+              </el-table-column>
+              <el-table-column
+                label="确认"
+                width="120">
+                <template slot-scope="scope">
+                  <el-button @click="confirm(scope.row)" size="small">确定</el-button>
+                </template>
+              </el-table-column>
+              <el-table-column
+                label="修改"
+                width="320">
+                <template slot-scope="scope">
+                  <ElRow :gutter="10">
+                    <ElCol :span="4">
+                      <ElButton @click="modify(scope.row, 'A')">A</ElButton>
+                    </ElCol>
+                    <ElCol :span="4">
+                      <ElButton @click="modify(scope.row, 'B')">B</ElButton>
+                    </ElCol>
+                    <ElCol :span="4">
+                      <ElButton @click="modify(scope.row, 'C')">C</ElButton>
+                    </ElCol>
+                    <ElCol :span="4">
+                      <ElButton @click="modify(scope.row, 'D')">D</ElButton>
+                    </ElCol>
+                    <ElCol :span="4">
+                      <ElButton @click="modify(scope.row, 'X')">X</ElButton>
+                    </ElCol>                    
+                  </ElRow>
+                </template>
+              </el-table-column>
+            </el-table>
+          </ElCol>
+        </ElRow>
+        <ElRow>
+          <ElCol :span="2">
+            <ElButton type="primary" @click="incScale">放大</ElButton>
+          </ElCol>
+          <ElCol :span="2">
+            <ElButton type="primary" @click="decScale">缩小</ElButton>
+          </ElCol>
+          <ElCol :span="2" :offset="6">
+            <ElButton type="primary" @click="detection">检测</ElButton>
+          </ElCol>
+          <ElCol :span="2">
+            <ElButton type="primary" @click="next">继续</ElButton>
+          </ElCol>
+        </ElRow>
+        <ElRow>
+          <ElCol :span="2">
+            <ElButton type="primary" @click="setAddClass('A')">+A</ElButton>
+          </ElCol>
+          <ElCol :span="2">
+            <ElButton type="primary" @click="setAddClass('B')">+B</ElButton>
+          </ElCol>
+          <ElCol :span="2">
+            <ElButton type="primary" @click="setAddClass('C')">+C</ElButton>
+          </ElCol>
+          <ElCol :span="2">
+            <ElButton type="primary" @click="setAddClass('D')">+D</ElButton>
+          </ElCol>
+          <ElCol :span="2" :offset="2">
+            <ElButton type="primary" @click="addConfirm()">确定</ElButton>
+          </ElCol>
+          <ElCol :span="2">
+            <ElButton type="primary" @click="addCancel()">取消</ElButton>
+          </ElCol>
+        </ElRow>
       </ElCol>
     </ElRow>
-    <ElRow>
-      <ElCol :span="1" :offset="8">
-        <ElButton type="primary" @click="incScale">放大</ElButton>
-      </ElCol>
-      <ElCol :span="1">
-        <ElButton type="primary" @click="decScale">缩小</ElButton>
-      </ElCol>
-      <ElCol :span="1" :offset="2">
-        <ElButton type="primary" @click="detection">检测</ElButton>
-      </ElCol>
-      <ElCol :span="1">
-        <ElButton type="primary" @click="next">继续</ElButton>
-      </ElCol>
-    </ElRow>
-    <el-divider></el-divider>
   </div>
 </template>
 
@@ -77,16 +106,16 @@ export default {
     return {
       ans: [],
       trueAns: [
-        'A', 'B', 'C', 'D', 'B',
-        'B', 'C', 'C', 'A', 'C',
-        'B', 'C', 'C', 'B', 'D',
-        'A', 'D', 'B', 'C', 'A',
-        'B', 'D', 'B', 'C', 'D',
-        'D', 'B', 'C', 'C', 'A',
-        'D', 'B', 'C', 'D', 'A',
-        'B', 'C', 'B', 'D', 'B'
+        'A', 'A', 'A', 'A', 'A',
+        'A', 'A', 'A', 'A', 'A',
+        'B', 'B', 'B', 'B', 'B',
+        'B', 'B', 'B', 'B', 'B',
+        'C', 'C', 'C', 'C', 'C',
+        'C', 'C', 'C', 'C', 'C',
+        'D', 'D', 'D', 'D', 'D',
+        'D', 'D', 'D', 'D', 'D'
       ],
-      inputAns: ''
+      addClass: ''
     }
   },
   created() {
@@ -95,7 +124,7 @@ export default {
     lessScoreAns() {
       let items = [];
       for (let letter of this.ans) {
-        if (letter.score < 85) {
+        if (letter.score < 80) {
           items.push(letter);
         }
       }
@@ -108,7 +137,6 @@ export default {
     new P5(sketch.main)
     sketch.setGetImgData(this.getImgData);
     sketch.setTrueAns(this.trueAns);
-    new P5(sketch.second)
   },
   methods: {
     incScale() {
@@ -146,22 +174,25 @@ export default {
     },
     next() {
       sketch.clear();
-      this.inputAns = '';
     },
     confirm(row) {
-      let idx = row.no;
-      this.ans[idx - 1].score = 99;
-      sketch.updateSecP5();
+      let idx = row.no - 1;
+      this.ans[idx].score = 99;
       if (this.lessScoreAns.length == 0) {
         this.drawScore();
       }
     },
     modify(row, correctAns) {
-      let idx = row.no;
-      this.ans[idx - 1].score = 99;
-      this.ans[idx - 1].class = correctAns;
-      this.inputAns = '';
-      sketch.updateSecP5();
+      let idx = row.no - 1;
+      if (correctAns == 'X') {
+          for (let i = idx + 1; i < this.ans.length; i++) {
+            this.ans[i].no -= 1;
+          }
+          this.ans.splice(idx, 1);
+      } else {
+        this.ans[idx].score = 99;
+        this.ans[idx].class = correctAns;
+      }
       if (this.lessScoreAns.length == 0) {
         this.drawScore();
       }
@@ -174,12 +205,67 @@ export default {
           score++;
         }
       }
-      sketch.drawScore(score);
+      sketch.drawScore(score * 2);
+    },
+    setAddClass(cls) {
+      sketch.changeAddingState();
+      this.addClass = cls;
+    },
+    addConfirm() {
+      let box = sketch.getBox();
+      this.addAns(box);
+      sketch.changeAddingState();
+    },
+    addCancel() {
+      sketch.changeAddingState();
+    },
+    addAns(box) {
+      let letter = {}
+      letter.score = 99;
+      letter.class = this.addClass;
+      letter.box = box;
+      letter.no = -1;
+      this.ans.push(letter);
+      let tAns = this.ans.slice();
+      this.ans.splice(0, tAns.length);
+      tAns.sort(function(a, b) {
+        let v1 = a.box[0] + a.box[1] * 2000;
+        let v2 = b.box[0] + b.box[1] * 2000;
+        return v1 - v2;
+      });
+      let i = 0;
+      let j = 0;
+      while (i < tAns.length) {
+        while ((j < tAns.length) && ((tAns[j].box[1] - tAns[i].box[1]) <= (tAns[i].box[3] - tAns[i].box[1]))) {
+          j++;
+        }
+        let tmp = tAns.slice(i, j);
+        window.console.log('tmp', tmp);
+        tmp.sort(function(a, b) {
+          return a.box[0] - b.box[0];
+        });
+        for (let l of tmp) {
+          this.ans.push(l);
+        }
+        i = j;
+      }
+      for (let k = 0 ; k < this.ans.length; k++) {
+        this.ans[k].no = k + 1;
+      }
     }
   }
 }
 </script>
 
 <style>
+.el-row {
+  margin-bottom: 20px;
+}
+.el-button {
+  font-size: 25px;
+}
+.el-table {
+  font-size: 1.5em;
+}
 
 </style>

@@ -1,5 +1,4 @@
 let p5;
-let secP5;
 let capture;
 
 
@@ -8,22 +7,33 @@ let hasAns = false;
 let letters = [];
 let trueAns = [];
 
+
 let score;
 let hasScore = false;
+let isAdding = false;
+
+let firstPressed = true;
 
 /* config  */
-let scale = 1.2;
-let canvasWidth = 600;
-let canvasHeight = 900;
+let scale = 1.0;
+let canvasWidth = 800;
+let canvasHeight = 920;
 let resolutionWidth = 2592;
 let resolutionHeight = 1944;
 let scaleCnt = 4;
+
+
+let addMinX = 0;
+let addMinY = 0;
+let addMaxX = 0;
+let addMaxY = 0;
 
 export function main(_p5) {
     p5 = _p5;
     p5.setup = () => {      
         let canvas = p5.createCanvas(canvasWidth, canvasHeight);
         canvas.parent("MainCanvas");
+        p5.background(180);
         let constraints = {
           video: {
             mandatory: {
@@ -46,30 +56,22 @@ export function main(_p5) {
         p5.image(capture, 0, 0, canvasWidth, canvasHeight, minx, miny, width, height);
         if (hasAns) {
             p5.noFill();
-            secP5.noFill();
             for (let [index, letter] of new Map(letters.map(( item, i ) => [i, item]))) {
                 p5.stroke(0, 255, 0);
-                p5.strokeWeight(1);
-                secP5.stroke(0, 255, 0);
-                secP5.strokeWeight(1);
+                p5.strokeWeight(3);
 
                 /* 答案错误 */
                 if (letter.class != trueAns[index]) {
                     p5.stroke(255, 0, 0);
-                    secP5.stroke(255, 0, 0);
                     p5.strokeWeight(3);
-                    secP5.strokeWeight(3);
                 }
                 
                 /* 置信率低 */
-                if (letter.score < 85) {
+                if (letter.score < 80) {
                     p5.stroke(255, 255, 0);
-                    secP5.stroke(255, 255, 0);
                     p5.strokeWeight(3);
-                    secP5.strokeWeight(3);
                 }
                 p5.rect(letter.box[0], letter.box[1], letter.box[2] - letter.box[0], letter.box[3] - letter.box[1])
-                secP5.rect(letter.box[0], letter.box[1], letter.box[2] - letter.box[0], letter.box[3] - letter.box[1])
             }
         }
         /* 输出分数 */
@@ -78,35 +80,54 @@ export function main(_p5) {
             p5.textSize(35);
             p5.textStyle(p5.BOLD);
             p5.text(score.toString(), canvasWidth * 0.9, canvasHeight * 0.1);
-            secP5.fill(0, 0, 255);
-            secP5.textStyle(secP5.BOLD);
-            secP5.textSize(35);
-            secP5.text(score.toString(), canvasWidth * 0.9, canvasHeight * 0.1);
+        }
+
+        if (isAdding) {
+            p5.noFill();
+            p5.strokeWeight(3);
+            p5.stroke(255, 255, 255);
+            p5.rect(addMinX, addMinY, addMaxX - addMinX, addMaxY - addMinY);
         }
     }
-}
 
-export function second(_p5) {
-    secP5 = _p5;
-    secP5.setup = () => {      
-        let canvas = secP5.createCanvas(canvasWidth, canvasHeight);
-        canvas.parent("SecCanvas");
-        secP5.noLoop();
+    p5.mousePressed = () => {
+        if (p5.mouseX > canvasWidth || p5.mouseY > canvasHeight)
+            return false;
+        if (firstPressed) {
+            addMinX = p5.mouseX;
+            addMinY = p5.mouseY;
+            firstPressed = false;
+        }
+        return false;
     }
 
-    secP5.draw = () => {      
-        secP5.background(230);
+    p5.mouseDragged = () => {
+        if (p5.mouseX > canvasWidth || p5.mouseY > canvasHeight)
+            return false;
+        addMaxX = p5.mouseX;
+        addMaxY = p5.mouseY;
+    }
+
+    p5.mouseReleased = () => {
+        if (p5.mouseX > canvasWidth || p5.mouseY > canvasHeight)
+            return false;
+        firstPressed = true;
     }
 }
+
 
 export function incScale() {
-    scale -= 0.2;
+    scale -= 0.1;
     scaleCnt = scaleCnt + 1;
+}
+
+export function changeAddingState() {
+    isAdding = !isAdding;
 }
 
 export function decScale() {
     if (scaleCnt > 0) {
-        scale += 0.2;
+        scale += 0.1;
         scaleCnt = scaleCnt - 1;
     }
 }
@@ -115,12 +136,8 @@ export function setGetImgData(_getImgData) {
     getImgData = _getImgData;
 }
 
+
 export function saveImg() {
-    let width = canvasWidth * scale;
-    let height = canvasHeight * scale;
-    let minx = (resolutionWidth - width) / 2;
-    let miny = (resolutionHeight - height) / 2;
-    secP5.image(capture, 0, 0, canvasWidth, canvasHeight, minx, miny, width, height);
     p5.saveFrames('out', 'jpg', 1, 1, data => {
        getImgData(data[0].imageData);
     });
@@ -129,16 +146,11 @@ export function saveImg() {
 export function drawAns(_letters) {
     letters = _letters;
     hasAns = true;
-}
+} 
 
 export function clear() {
     hasAns = false;
     hasScore = false;
-    secP5.redraw();
-    secP5.noLoop();
-}
-
-export function drawSec() {
 }
 
 export function setTrueAns(_trueAns) {
@@ -150,15 +162,6 @@ export function drawScore(_score) {
     score = _score;
 }
 
-export function updateSecP5() {
-    secP5.redraw();
-    secP5.noLoop();
-    let width = canvasWidth * scale;
-    let height = canvasHeight * scale;
-    let minx = (resolutionWidth - width) / 2;
-    let miny = (resolutionHeight - height) / 2;
-    secP5.image(capture, 0, 0, canvasWidth, canvasHeight, minx, miny, width, height);
+export function getBox() {
+   return [addMinX, addMinY, addMaxX, addMaxY]; 
 }
-
-
-/* second canvas */
