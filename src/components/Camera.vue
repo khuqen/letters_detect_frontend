@@ -1,3 +1,11 @@
+<!--
+ * @Description: Camera组件，在该组件下进行主要的识别工作
+ * @Autor: khuqen
+ * @Date: 2019-10-31 11:10:56
+ * @LastEditors: khuqen
+ * @LastEditTime: 2019-12-13 18:02:41
+ -->
+
 <template>
   <div>
     <ElRow>
@@ -104,8 +112,8 @@ export default {
   name: 'Camera',
   data() {
     return {
-      ans: [],
-      trueAns: [
+      ans: [],  // 识别答案
+      trueAns: [  //真实答案
         'A', 'A', 'A', 'A', 'A',
         'A', 'A', 'A', 'A', 'A',
         'B', 'B', 'B', 'B', 'B',
@@ -115,12 +123,16 @@ export default {
         'D', 'D', 'D', 'D', 'D',
         'D', 'D', 'D', 'D', 'D'
       ],
-      addClass: ''
+      addClass: ''  //当前正在增加的识别框内字母的类别
     }
   },
-  created() {
-  },
   computed: {
+    /**
+     * @description: 计算属性，返回低置信率的字母集合
+     * @param {type} 
+     * @return: 
+     * @author: khuqen
+     */
     lessScoreAns() {
       let items = [];
       for (let letter of this.ans) {
@@ -135,16 +147,34 @@ export default {
     sketch = require('../js/sketch.js')
     const P5 = require('p5')
     new P5(sketch.main)
-    sketch.setGetImgData(this.getImgData);
-    sketch.setTrueAns(this.trueAns);
+    sketch.setGetImgData(this.getImgData); // 将本地的getImgData传到sketch中
+    sketch.setTrueAns(this.trueAns);  // 传递真实答案
   },
   methods: {
+    /**
+     * @description: 放大
+     * @param {type} 
+     * @return: 
+     * @author: khuqen
+     */
     incScale() {
       sketch.incScale();
     },
+    /**
+     * @description: 缩小
+     * @param {type} 
+     * @return: 
+     * @author: khuqen
+     */
     decScale() {
       sketch.decScale();
     },
+    /**
+     * @description: 获得图片base64编码，发往后端，得到识别结果
+     * @param {type} 
+     * @return: 
+     * @author: khuqen
+     */
     getImgData(imgData) {
       let data = {
         "imageData": imgData
@@ -160,21 +190,46 @@ export default {
           if (this.lessScoreAns.length == 0) {
             this.drawScore();
           }
+          /* 识别数量不够或者超出，警告用户 */
           if (res.data.valid == false) {
             alert('识别不完整！！！');
           }
       })
     },
+    /**
+     * @description: 检测
+     * @param {type} 
+     * @return: 
+     * @author: khuqen
+     */
     detection() {
       sketch.clear();
       sketch.saveImg();
     },
+    /**
+     * @description: 绘制答案
+     * @param {type} 
+     * @return: 
+     * @author: khuqen
+     */
     drawAns(letters) {
         sketch.drawAns(letters);
     },
+    /**
+     * @description: 继续，清空画布上的颜色
+     * @param {type} 
+     * @return: 
+     * @author: khuqen
+     */
     next() {
       sketch.clear();
     },
+    /**
+     * @description: 对低置信率的字母进行确认
+     * @param {row} 表格中的一行信息的对象
+     * @return: 
+     * @author: khuqen
+     */
     confirm(row) {
       let idx = row.no - 1;
       this.ans[idx].score = 99;
@@ -182,6 +237,12 @@ export default {
         this.drawScore();
       }
     },
+    /**
+     * @description: 对低置信率的识别结果改为其他的结果
+     * @param {type} 
+     * @return: 
+     * @author: khuqen
+     */
     modify(row, correctAns) {
       let idx = row.no - 1;
       if (correctAns == 'X') {
@@ -197,6 +258,12 @@ export default {
         this.drawScore();
       }
     },
+    /**
+     * @description: 计算分数并绘制
+     * @param {type} 
+     * @return: 
+     * @author: khuqen
+     */
     drawScore() {
       let len = this.ans.length;
       let score = 0;
@@ -207,18 +274,42 @@ export default {
       }
       sketch.drawScore(score * 2);
     },
+    /**
+     * @description: 进入增加识别框过程并设置当前增加字母的类别
+     * @param {cls} 当前正在增加字母的类别
+     * @return: 
+     * @author: khuqen
+     */
     setAddClass(cls) {
       sketch.changeAddingState();
       this.addClass = cls;
     },
+    /**
+     * @description: 对增加的识别框确认
+     * @param {type} 
+     * @return: 
+     * @author: khuqen
+     */
     addConfirm() {
       let box = sketch.getBox();
       this.addAns(box);
       sketch.changeAddingState();
     },
+    /**
+     * @description: 取消当前增加的识别框
+     * @param {type} 
+     * @return: 
+     * @author: khuqen
+     */
     addCancel() {
       sketch.changeAddingState();
     },
+    /**
+     * @description: 增加一个答案
+     * @param {box} 识别框的4个坐标
+     * @return: 
+     * @author: khuqen
+     */
     addAns(box) {
       let letter = {}
       letter.score = 99;
@@ -228,11 +319,13 @@ export default {
       this.ans.push(letter);
       let tAns = this.ans.slice();
       this.ans.splice(0, tAns.length);
+      /* 按行排序 */
       tAns.sort(function(a, b) {
         let v1 = a.box[0] + a.box[1] * 2000;
         let v2 = b.box[0] + b.box[1] * 2000;
         return v1 - v2;
       });
+      /* 按列排序，当行差不超过一个字母的高度时认为是同一行 */
       let i = 0;
       let j = 0;
       while (i < tAns.length) {
@@ -249,6 +342,7 @@ export default {
         }
         i = j;
       }
+      /* 重新分配题号 */
       for (let k = 0 ; k < this.ans.length; k++) {
         this.ans[k].no = k + 1;
       }
