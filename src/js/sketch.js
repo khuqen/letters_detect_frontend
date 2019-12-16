@@ -3,7 +3,7 @@
  * @Autor: khuqen
  * @Date: 2019-11-30 19:15:29
  * @LastEditors: khuqen
- * @LastEditTime: 2019-12-13 17:50:26
+ * @LastEditTime: 2019-12-16 14:34:15
  */
 
 let p5; // p5 实例
@@ -122,24 +122,6 @@ export function main(_p5) {
         }
     }
     /**
-     * @description: 鼠标按压事件处理
-     * @param {type} 
-     * @return: 
-     * @author: khuqen
-     */
-    p5.mousePressed = () => {
-        /* 如果超出画布范围，忽略 */
-        if (p5.mouseX > canvasWidth || p5.mouseY > canvasHeight)
-            return false;
-        /* 记录矩形框左上角的坐标 */
-        if (firstPressed) {
-            addMinX = p5.mouseX;
-            addMinY = p5.mouseY;
-            firstPressed = false;
-        }
-        return false;
-    }
-    /**
      * @description: 处理鼠标拖拽函数，此处实时更新识别框右下角值
      * @param {type} 
      * @return: 
@@ -148,6 +130,13 @@ export function main(_p5) {
     p5.mouseDragged = () => {
         if (p5.mouseX > canvasWidth || p5.mouseY > canvasHeight)
             return false;
+        /* 记录矩形框左上角的坐标 */
+        if (firstPressed) {
+            addMinX = p5.mouseX;
+            addMinY = p5.mouseY;
+            firstPressed = false;
+        }
+        /* 右下角的坐标 */
         addMaxX = p5.mouseX;
         addMaxY = p5.mouseY;
     }
@@ -182,6 +171,29 @@ export function incScale() {
  */
 export function changeAddingState() {
     isAdding = !isAdding;
+}
+
+/**
+ * @description: 将绘制识别框的状态置为真
+ * @param {type} 
+ * @return: 
+ * @author: khuqen
+ */
+export function setAddingState() {
+    isAdding = true;
+}
+/**
+ * @description: 将绘制识别框的状态置为假, 并识别框位置重置
+ * @param {type} 
+ * @return: 
+ * @author: khuqen
+ */
+export function cancelAddingState() {
+    isAdding = false;
+    addMinX = 0;
+    addMaxX = 0;
+    addMinY = 0;
+    addMaxX = 0;
 }
 /**
  * @description: 缩小

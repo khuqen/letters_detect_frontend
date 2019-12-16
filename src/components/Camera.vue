@@ -3,7 +3,7 @@
  * @Autor: khuqen
  * @Date: 2019-10-31 11:10:56
  * @LastEditors: khuqen
- * @LastEditTime: 2019-12-13 18:02:41
+ * @LastEditTime: 2019-12-16 14:38:32
  -->
 
 <template>
@@ -143,6 +143,7 @@ export default {
       return items;
     }
   },
+
   mounted() {
     sketch = require('../js/sketch.js')
     const P5 = require('p5')
@@ -150,6 +151,7 @@ export default {
     sketch.setGetImgData(this.getImgData); // 将本地的getImgData传到sketch中
     sketch.setTrueAns(this.trueAns);  // 传递真实答案
   },
+
   methods: {
     /**
      * @description: 放大
@@ -281,7 +283,7 @@ export default {
      * @author: khuqen
      */
     setAddClass(cls) {
-      sketch.changeAddingState();
+      sketch.setAddingState();
       this.addClass = cls;
     },
     /**
@@ -293,7 +295,8 @@ export default {
     addConfirm() {
       let box = sketch.getBox();
       this.addAns(box);
-      sketch.changeAddingState();
+      sketch.cancelAddingState();
+      this.drawScore();
     },
     /**
      * @description: 取消当前增加的识别框
@@ -302,7 +305,7 @@ export default {
      * @author: khuqen
      */
     addCancel() {
-      sketch.changeAddingState();
+      sketch.cancelAddingState();
     },
     /**
      * @description: 增加一个答案
