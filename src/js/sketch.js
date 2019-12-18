@@ -2,8 +2,8 @@
  * @Description: 实现绘图
  * @Autor: khuqen
  * @Date: 2019-11-30 19:15:29
- * @LastEditors: khuqen
- * @LastEditTime: 2019-12-16 14:34:15
+ * @LastEditors  : khuqen
+ * @LastEditTime : 2019-12-18 22:37:33
  */
 
 let p5; // p5 实例
@@ -99,7 +99,7 @@ export function main(_p5) {
                 }
                 
                 /* 置信率低 */
-                if (letter.score < 80) {
+                if (letter.score < 70) {
                     p5.stroke(255, 255, 0);
                     p5.strokeWeight(3);
                 }
@@ -129,6 +129,8 @@ export function main(_p5) {
      */
     p5.mouseDragged = () => {
         if (p5.mouseX > canvasWidth || p5.mouseY > canvasHeight)
+            return false;
+        if (!isAdding)
             return false;
         /* 记录矩形框左上角的坐标 */
         if (firstPressed) {

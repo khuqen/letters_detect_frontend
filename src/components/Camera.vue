@@ -2,8 +2,8 @@
  * @Description: Camera组件，在该组件下进行主要的识别工作
  * @Autor: khuqen
  * @Date: 2019-10-31 11:10:56
- * @LastEditors: khuqen
- * @LastEditTime: 2019-12-16 14:38:32
+ * @LastEditors  : khuqen
+ * @LastEditTime : 2019-12-18 22:19:35
  -->
 
 <template>
@@ -13,6 +13,30 @@
         <div id="MainCanvas"></div>
       </ElCol>
       <ElCol :span="12">
+        <ElRow>
+          <ElCol :span="8">
+            <p class="text">第
+              <el-input-number v-model="bookNo" @change="handleChange" :min="1"></el-input-number>
+              本</p>
+          </ElCol>
+          <ElCol :span="8">
+            <p class="text">第
+              <el-input-number v-model="paperNo" @change="handleChange" :min="1" :max="this.trueAns.length"></el-input-number>
+              张</p>
+          </ElCol>
+        </ElRow>
+        <ElRow>
+          <ElCol :span="8">
+            <p class="text">当前分数: 
+              <span class="num">{{ this.score }}</span>
+            </p>
+          </ElCol>
+          <ElCol :span="8">
+            <p class="text">识别数量: 
+              <span class="num">{{ this.ansNum }} / {{ this.trueAns.length }}</span>
+            </p>
+          </ElCol>
+        </ElRow>
         <ElRow>
           <ElCol :span="24">
             <el-table
@@ -74,7 +98,7 @@
           <ElCol :span="2">
             <ElButton type="primary" @click="decScale">缩小</ElButton>
           </ElCol>
-          <ElCol :span="2" :offset="6">
+          <ElCol :span="2" :offset="8">
             <ElButton type="primary" @click="detection">检测</ElButton>
           </ElCol>
           <ElCol :span="2">
@@ -93,6 +117,9 @@
           </ElCol>
           <ElCol :span="2">
             <ElButton type="primary" @click="setAddClass('D')">+D</ElButton>
+          </ElCol>
+          <ElCol :span="2">
+            <ElButton type="primary" @click="setAddClass('O')">+O</ElButton>
           </ElCol>
           <ElCol :span="2" :offset="2">
             <ElButton type="primary" @click="addConfirm()">确定</ElButton>
@@ -123,7 +150,9 @@ export default {
         'D', 'D', 'D', 'D', 'D',
         'D', 'D', 'D', 'D', 'D'
       ],
-      addClass: ''  //当前正在增加的识别框内字母的类别
+      addClass: '',  //当前正在增加的识别框内字母的类别
+      bookNo: 1,
+      paperNo: 1
     }
   },
   computed: {
@@ -136,14 +165,55 @@ export default {
     lessScoreAns() {
       let items = [];
       for (let letter of this.ans) {
-        if (letter.score < 80) {
+        if (letter.score < 70) {
           items.push(letter);
         }
       }
       return items;
+    },
+    ansNum() {
+      return this.ans.length;
+    },
+    score() {
+      let _score = 0;
+      for (let i = 0; i < this.ans.length; i++) {
+        if(this.ans[i].class == this.trueAns[i]) {
+          _score++;
+        }
+      }
+      return _score * 2;
     }
   },
-
+  created() {
+    let _this = this;
+    document.onkeydown = function(e) {
+      e.preventDefault();
+      let key = window.event.keyCode;
+      if (key == 49) {  // 1
+        _this.setAddClass('A');
+      } else if (key == 50) { // 2
+        _this.setAddClass('B');
+      } else if (key == 51) { // 3
+        _this.setAddClass('C');
+      } else if (key == 52) { // 4
+        _this.setAddClass('D');
+      } else if (key == 53) { // 5
+        _this.setAddClass('O'); // 空白
+      } else if (key == 32) { // Space
+        _this.addConfirm();
+      } else if (key == 27) { // Esc
+        _this.addCancel();
+      } else if (key == 13) { // Enter
+        _this.detection();
+      } else if (key == 8) {  // BackSpace
+        _this.next();
+      } else if (key == 38) {  // Up
+        _this.incScale();
+      } else if (key == 40) { // Down
+        _this.decScale();
+      }
+    };
+  },
   mounted() {
     sketch = require('../js/sketch.js')
     const P5 = require('p5')
@@ -192,9 +262,14 @@ export default {
           if (this.lessScoreAns.length == 0) {
             this.drawScore();
           }
-          /* 识别数量不够或者超出，警告用户 */
+          /* 识别数量不够或者超出，提醒用户 */
           if (res.data.valid == false) {
-            alert('识别不完整！！！');
+            // alert('识别不完整！！！');
+            this.$message({
+              message: '注意! 识别数量与预期不符合',
+              type: 'warning',
+              duration: 1500
+            });
           }
       })
     },
@@ -225,6 +300,7 @@ export default {
      */
     next() {
       sketch.clear();
+      this.ans = [];
     },
     /**
      * @description: 对低置信率的字母进行确认
@@ -267,14 +343,7 @@ export default {
      * @author: khuqen
      */
     drawScore() {
-      let len = this.ans.length;
-      let score = 0;
-      for (let i = 0; i < len; i++) {
-        if(this.ans[i].class == this.trueAns[i]) {
-          score++;
-        }
-      }
-      sketch.drawScore(score * 2);
+      sketch.drawScore(this.score);
     },
     /**
      * @description: 进入增加识别框过程并设置当前增加字母的类别
@@ -356,7 +425,7 @@ export default {
 
 <style>
 .el-row {
-  margin-bottom: 20px;
+  margin-bottom: 5px;
 }
 .el-button {
   font-size: 25px;
@@ -364,5 +433,12 @@ export default {
 .el-table {
   font-size: 1.5em;
 }
-
+.text {
+  font-size: 1.4em;
+  color: #909399;
+}
+.num {
+  font-size: 1.6em;
+  color: #67C23A;
+}
 </style>
