@@ -3,7 +3,7 @@
  * @Autor: khuqen
  * @Date: 2019-10-31 11:10:56
  * @LastEditors  : khuqen
- * @LastEditTime : 2019-12-18 22:19:35
+ * @LastEditTime : 2020-01-02 23:07:25
  -->
 
 <template>
@@ -16,12 +16,12 @@
         <ElRow>
           <ElCol :span="8">
             <p class="text">第
-              <el-input-number v-model="bookNo" @change="handleChange" :min="1"></el-input-number>
+              <el-input-number v-model="bookNo" :min="1"></el-input-number>
               本</p>
           </ElCol>
           <ElCol :span="8">
             <p class="text">第
-              <el-input-number v-model="paperNo" @change="handleChange" :min="1" :max="this.trueAns.length"></el-input-number>
+              <el-input-number v-model="paperNo" :min="1"></el-input-number>
               张</p>
           </ElCol>
         </ElRow>
@@ -187,7 +187,6 @@ export default {
   created() {
     let _this = this;
     document.onkeydown = function(e) {
-      e.preventDefault();
       let key = window.event.keyCode;
       if (key == 49) {  // 1
         _this.setAddClass('A');
@@ -200,12 +199,13 @@ export default {
       } else if (key == 53) { // 5
         _this.setAddClass('O'); // 空白
       } else if (key == 32) { // Space
+        e.preventDefault();
         _this.addConfirm();
       } else if (key == 27) { // Esc
         _this.addCancel();
       } else if (key == 13) { // Enter
         _this.detection();
-      } else if (key == 8) {  // BackSpace
+      } else if (key == 78) {  // n
         _this.next();
       } else if (key == 38) {  // Up
         _this.incScale();
@@ -220,6 +220,10 @@ export default {
     new P5(sketch.main)
     sketch.setGetImgData(this.getImgData); // 将本地的getImgData传到sketch中
     sketch.setTrueAns(this.trueAns);  // 传递真实答案
+    sketch.setSendResult(this.sendResult);
+
+    this.bookNo = localStorage.getItem("bookNo");
+    this.paperNo = localStorage.getItem("paperNo");
   },
 
   methods: {
@@ -253,7 +257,6 @@ export default {
       };
       this.$http.post('/upload/img', data)
         .then( res => {
-          // window.console.log('res=>', res);
           this.ans = [];
           for (let letter of res.data.letters) {
             this.ans.push(letter);
@@ -272,6 +275,32 @@ export default {
             });
           }
       })
+    },
+    sendResult(imgData) {
+      let writingAns = this.ans.map(letter => letter.class);
+      let data = {
+        "imageData": imgData,
+        "bookNo": this.bookNo,
+        "paperNo": this.paperNo,
+        "writingAns": writingAns
+      };
+      this.$http.post('/upload/result', data)
+        .then(res => {
+          window.console.log(res);
+          if (res.data.status != 'done') {
+              this.$message({
+                message: '错误！上传结果失败',
+                type: 'error',
+                duration: 1500
+            });
+          }
+          this.ans = [];
+          this.paperNo++;
+          sketch.clear();
+          localStorage.setItem("bookNo", this.bookNo);
+          localStorage.setItem("paperNo", this.paperNo);
+      }) 
+      window.console.log(data);     
     },
     /**
      * @description: 检测
@@ -299,8 +328,10 @@ export default {
      * @author: khuqen
      */
     next() {
-      sketch.clear();
-      this.ans = [];
+      sketch.sendImg();
+      // sketch.clear();
+      // this.ans = [];
+      // this.paperNo ++;
     },
     /**
      * @description: 对低置信率的字母进行确认
@@ -363,9 +394,11 @@ export default {
      */
     addConfirm() {
       let box = sketch.getBox();
-      this.addAns(box);
-      sketch.cancelAddingState();
-      this.drawScore();
+      if (box[0] != 0) {
+        this.addAns(box);
+        sketch.cancelAddingState();
+        this.drawScore();
+      }
     },
     /**
      * @description: 取消当前增加的识别框
@@ -405,7 +438,6 @@ export default {
           j++;
         }
         let tmp = tAns.slice(i, j);
-        window.console.log('tmp', tmp);
         tmp.sort(function(a, b) {
           return a.box[0] - b.box[0];
         });

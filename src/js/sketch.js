@@ -3,7 +3,7 @@
  * @Autor: khuqen
  * @Date: 2019-11-30 19:15:29
  * @LastEditors  : khuqen
- * @LastEditTime : 2019-12-18 22:37:33
+ * @LastEditTime : 2020-01-02 22:47:00
  */
 
 let p5; // p5 实例
@@ -11,7 +11,7 @@ let capture;   // 摄像头捕获
 
 
 let getImgData;   // 获得图片数据函数
-
+let sendResult;   // 发送识别结果
 
 let letters = [];   //识别出的字母
 let trueAns = [];   //真实答案
@@ -28,8 +28,8 @@ let firstPressed = true;    //鼠标是否第一次被按压
 let scale = 1.0;           // 放大规模
 let canvasWidth = 800;      // 画布宽度
 let canvasHeight = 920;     // 画布高度
-let resolutionWidth = 2592;    // 分辨率
-let resolutionHeight = 1944;
+let maxResolutionWidth = 2592;    // 分辨率
+let maxResolutionHeight = 1944;
 
 let scaleCnt = 4;   // 允许缩小的次数
 
@@ -54,23 +54,36 @@ export function main(_p5) {
      * @author: khuqen
      */
     p5.setup = () => {      
+        // let canvas = p5.createCanvas(canvasWidth, canvasHeight);
+        canvasWidth = p5.windowWidth * 0.35;
+        canvasHeight = p5.windowHeight * 0.9;
         let canvas = p5.createCanvas(canvasWidth, canvasHeight);
         canvas.parent("MainCanvas"); // 指明画布的父节点
         p5.background(180);
         /* 摄像头参数 */
         let constraints = {
           video: {
-            mandatory: {
-              minWidth: resolutionWidth,
-              minHeight: resolutionHeight
-            },
-            optional: [{ maxFrameRate: 60 }]
+            width: {min: 640, ideal: maxResolutionWidth, max: maxResolutionWidth},
+            height: {min: 480, ideal: maxResolutionHeight, max: maxResolutionHeight},
+            frameRate: {min: 30, max:60},
+            facingMode: ['environment', 'left']
+            // mandatory: {
+            //   minWidth: maxResolutionWidth,
+            //   minHeight: maxResolutionHeight,
+            // },
+            // optional: [{ maxFrameRate: 60 }]
           },
           audio: false
         };
         capture = p5.createCapture(constraints);
         capture.hide(); // 将自动生成的video隐藏
-    }     
+    }
+
+    p5.windowResized = () => {
+        canvasWidth = p5.windowWidth * 0.35;
+        canvasHeight = p5.windowHeight * 0.9;
+        p5.resizeCanvas(canvasWidth, canvasHeight);
+    }
     /**
      * @description: 实现绘图函数
      * @param {type} 
@@ -79,10 +92,27 @@ export function main(_p5) {
      */
     p5.draw = () => {
         /* 截取捕捉图片的中间一部分并进行缩放，实现数码变焦 */
-        let width = canvasWidth * scale;
-        let height = canvasHeight * scale;
-        let minx = (resolutionWidth - width) / 2;
-        let miny = (resolutionHeight - height) / 2;
+        let width = 900 * scale;
+        let height = 1200 * scale;
+
+        let imgWidth  = capture.width;
+        let imgHeight = capture.height;
+
+        let minx = 0;
+        let miny = 0;
+        if (imgWidth > width) {
+            minx = (imgWidth - width) / 2;
+        } else {
+            width = imgWidth;
+            minx = 0;
+        }
+        if (imgHeight > height) {
+            miny = (imgHeight - height) / 2;
+        } else {
+            height = imgHeight;
+            miny = 0;
+        }
+
         p5.image(capture, 0, 0, canvasWidth, canvasHeight, minx, miny, width, height);
         
         /* 如果需要绘制答案 */
@@ -218,9 +248,18 @@ export function decScale() {
 export function setGetImgData(_getImgData) {
     getImgData = _getImgData;
 }
+/**
+ * @description: 将外部组件的函数赋值给本地的变量，实现调用外部函数
+ * @param {sendResult} vue组件的sendResult函数
+ * @return: 
+ * @author: khuqen
+ */
+export function setSendResult(_sendResult) {
+    sendResult = _sendResult;
+}
 
 /**
- * @description: 调用p5接口，将图片的base64编码传给后调
+ * @description: 调用p5接口，将图片的base64编码传给后端
  * @param {type} 
  * @return: 
  * @author: khuqen
@@ -230,6 +269,18 @@ export function saveImg() {
        getImgData(data[0].imageData);
     });
 }
+/**
+ * @description: 调用p5接口，将识别后的图片的base64编码传给后端
+ * @param {type} 
+ * @return: 
+ * @author: khuqen
+ */
+export function sendImg() {
+    p5.saveFrames('out', 'jpg', 1, 1, data => {
+        sendResult(data[0].imageData);
+     });
+}
+
 /**
  * @description: 开始绘制答案
  * @param {_letters} 传进来的字符对象数组 
