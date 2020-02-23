@@ -1,0 +1,9 @@
+ssh dachuang@10.112.79.202   # passsword:dachuang
+conda activate dc
+cd flask_backend_test/handwriting_recognition_backend/
+pkill -f uwsgi -9
+uwsgi -d log app.ini&
+cd ~
+cd installed/nginx/sbin/
+./nginx -s reload
+cd ~

@@ -2,8 +2,8 @@
  * @Description: 实现绘图
  * @Autor: khuqen
  * @Date: 2019-11-30 19:15:29
- * @LastEditors  : khuqen
- * @LastEditTime : 2020-01-02 22:47:00
+ * @LastEditors: khuqen
+ * @LastEditTime: 2020-02-23 19:08:53
  */
 
 let p5; // p5 实例
@@ -11,7 +11,7 @@ let capture;   // 摄像头捕获
 
 
 let getImgData;   // 获得图片数据函数
-let sendResult;   // 发送识别结果
+
 
 let letters = [];   //识别出的字母
 let trueAns = [];   //真实答案
@@ -55,8 +55,8 @@ export function main(_p5) {
      */
     p5.setup = () => {      
         // let canvas = p5.createCanvas(canvasWidth, canvasHeight);
-        canvasWidth = p5.windowWidth * 0.35;
-        canvasHeight = p5.windowHeight * 0.9;
+        canvasWidth = p5.windowWidth * 0.4;
+        canvasHeight = p5.windowHeight * 0.85;
         let canvas = p5.createCanvas(canvasWidth, canvasHeight);
         canvas.parent("MainCanvas"); // 指明画布的父节点
         p5.background(180);
@@ -115,9 +115,12 @@ export function main(_p5) {
 
         p5.image(capture, 0, 0, canvasWidth, canvasHeight, minx, miny, width, height);
         
+        p5.stroke(0, 0, 255);
+        p5.strokeWeight(2);
+        p5.line(canvasWidth * 0.05, canvasHeight * 0.15, canvasWidth * 0.95, canvasHeight * 0.15);
+
         /* 如果需要绘制答案 */
         if (hasAns) {
-            p5.noFill();
             for (let [index, letter] of new Map(letters.map(( item, i ) => [i, item]))) {
                 p5.stroke(0, 255, 0);
                 p5.strokeWeight(3);
@@ -129,11 +132,20 @@ export function main(_p5) {
                 }
                 
                 /* 置信率低 */
-                if (letter.score < 70) {
+                if (letter.score < 85) {
                     p5.stroke(255, 255, 0);
                     p5.strokeWeight(3);
                 }
-                p5.rect(letter.box[0], letter.box[1], letter.box[2] - letter.box[0], letter.box[3] - letter.box[1])
+                p5.noFill();
+                p5.rect(letter.box[0], letter.box[1], letter.box[2] - letter.box[0], letter.box[3] - letter.box[1]);
+                // p5.stroke(0, 0, 255);
+                p5.fill(0, 0, 255);
+                p5.noStroke();
+                p5.textStyle(p5.BOLD)
+                p5.textSize(15);
+                p5.text(letter.no.toString(), letter.box[2] + 3, letter.box[3] - 5);
+                p5.textSize(18);
+                p5.text(trueAns[index], letter.box[0] - 15, letter.box[1] + 15);
             }
         }
         /* 如果需要输出分数 */
@@ -248,15 +260,6 @@ export function decScale() {
 export function setGetImgData(_getImgData) {
     getImgData = _getImgData;
 }
-/**
- * @description: 将外部组件的函数赋值给本地的变量，实现调用外部函数
- * @param {sendResult} vue组件的sendResult函数
- * @return: 
- * @author: khuqen
- */
-export function setSendResult(_sendResult) {
-    sendResult = _sendResult;
-}
 
 /**
  * @description: 调用p5接口，将图片的base64编码传给后端
@@ -268,17 +271,6 @@ export function saveImg() {
     p5.saveFrames('out', 'jpg', 1, 1, data => {
        getImgData(data[0].imageData);
     });
-}
-/**
- * @description: 调用p5接口，将识别后的图片的base64编码传给后端
- * @param {type} 
- * @return: 
- * @author: khuqen
- */
-export function sendImg() {
-    p5.saveFrames('out', 'jpg', 1, 1, data => {
-        sendResult(data[0].imageData);
-     });
 }
 
 /**

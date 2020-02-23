@@ -2,8 +2,8 @@
  * @Description: 
  * @Autor: khuqen
  * @Date: 2019-10-31 11:10:56
- * @LastEditors  : khuqen
- * @LastEditTime : 2020-01-02 23:12:20
+ * @LastEditors: khuqen
+ * @LastEditTime: 2020-02-23 19:58:31
  */
 import Vue from 'vue'
 import App from './App.vue'
@@ -16,6 +16,7 @@ axios.defaults.baseURL = 'https://10.112.79.202:8010';
 Vue.prototype.$http = axios;
 Vue.config.productionTip = false
 
+
 new Vue({
-  render: h => h(App),
+	render: h => h(App),
 }).$mount('#app')

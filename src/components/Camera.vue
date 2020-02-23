@@ -2,88 +2,84 @@
  * @Description: Camera组件，在该组件下进行主要的识别工作
  * @Autor: khuqen
  * @Date: 2019-10-31 11:10:56
- * @LastEditors  : khuqen
- * @LastEditTime : 2020-01-02 23:07:25
+ * @LastEditors: khuqen
+ * @LastEditTime: 2020-02-23 20:15:31
  -->
 
 <template>
   <div>
-    <ElRow>
+    <ElRow type="flex" justify="space-around">
       <ElCol :span="12">
         <div id="MainCanvas"></div>
       </ElCol>
       <ElCol :span="12">
-        <ElRow>
-          <ElCol :span="8">
+        <ElRow type="flex" justify="start">
+          <ElCol :span="12">
             <p class="text">第
               <el-input-number v-model="bookNo" :min="1"></el-input-number>
               本</p>
           </ElCol>
-          <ElCol :span="8">
+          <ElCol :span="12">
             <p class="text">第
               <el-input-number v-model="paperNo" :min="1"></el-input-number>
               张</p>
           </ElCol>
         </ElRow>
-        <ElRow>
+        <ElRow type="flex" justify="start">
           <ElCol :span="8">
-            <p class="text">当前分数: 
+            <p class="text">分数: 
               <span class="num">{{ this.score }}</span>
             </p>
           </ElCol>
           <ElCol :span="8">
-            <p class="text">识别数量: 
+            <p class="text">数量: 
               <span class="num">{{ this.ansNum }} / {{ this.trueAns.length }}</span>
             </p>
           </ElCol>
         </ElRow>
-        <ElRow>
-          <ElCol :span="24">
+        <ElRow type="flex" justify="center">
+          <ElCol>
             <el-table
               :data="lessScoreAns"
-              height="600"
-              style="width: 100%">
+              height="400">
               <el-table-column
                 prop="no"
-                label="题号"
-                width="80">
+                label="题号">
               </el-table-column>
               <el-table-column
                 prop="class"
-                label="识别结果"
-                width="120">
+                label="结果">
               </el-table-column>
               <el-table-column
                 prop="score"
                 label="置信率"
-                width="120">
+                width="100">
               </el-table-column>
               <el-table-column
-                label="确认"
-                width="120">
+                label="确认">
                 <template slot-scope="scope">
-                  <el-button @click="confirm(scope.row)" size="small">确定</el-button>
+                  <el-button @click="confirm(scope.row)" size="small" type="text">确定</el-button>
                 </template>
               </el-table-column>
               <el-table-column
                 label="修改"
                 width="320">
                 <template slot-scope="scope">
-                  <ElRow :gutter="10">
+                  <ElRow :gutter="10" type="flex" justify="start">
                     <ElCol :span="4">
-                      <ElButton @click="modify(scope.row, 'A')">A</ElButton>
+                      <ElButton @click="modify(scope.row, 'A')" type="text">A</ElButton>
                     </ElCol>
                     <ElCol :span="4">
-                      <ElButton @click="modify(scope.row, 'B')">B</ElButton>
+                      <ElButton @click="modify(scope.row, 'B')" type="text">B</ElButton>
                     </ElCol>
                     <ElCol :span="4">
-                      <ElButton @click="modify(scope.row, 'C')">C</ElButton>
+                      <ElButton @click="modify(scope.row, 'C')" type="text">C</ElButton>
                     </ElCol>
                     <ElCol :span="4">
-                      <ElButton @click="modify(scope.row, 'D')">D</ElButton>
+                      <ElButton @click="modify(scope.row, 'D')" type="text">D</ElButton>
                     </ElCol>
                     <ElCol :span="4">
-                      <ElButton @click="modify(scope.row, 'X')">X</ElButton>
+                      <ElButton @click="modify(scope.row, 'X')" type="text">X</ElButton>
                     </ElCol>                    
                   </ElRow>
                 </template>
@@ -91,40 +87,40 @@
             </el-table>
           </ElCol>
         </ElRow>
-        <ElRow>
-          <ElCol :span="2">
+        <ElRow type="flex" justify="start">
+          <ElCol :span="4">
             <ElButton type="primary" @click="incScale">放大</ElButton>
           </ElCol>
-          <ElCol :span="2">
+          <ElCol :span="4">
             <ElButton type="primary" @click="decScale">缩小</ElButton>
           </ElCol>
-          <ElCol :span="2" :offset="8">
+          <ElCol :span="4" :offset="4">
             <ElButton type="primary" @click="detection">检测</ElButton>
           </ElCol>
-          <ElCol :span="2">
+          <ElCol :span="4">
             <ElButton type="primary" @click="next">继续</ElButton>
           </ElCol>
         </ElRow>
-        <ElRow>
-          <ElCol :span="2">
+        <ElRow type="flex" justify="start">
+          <ElCol :span="3">
             <ElButton type="primary" @click="setAddClass('A')">+A</ElButton>
           </ElCol>
-          <ElCol :span="2">
+          <ElCol :span="3">
             <ElButton type="primary" @click="setAddClass('B')">+B</ElButton>
           </ElCol>
-          <ElCol :span="2">
+          <ElCol :span="3">
             <ElButton type="primary" @click="setAddClass('C')">+C</ElButton>
           </ElCol>
-          <ElCol :span="2">
+          <ElCol :span="3">
             <ElButton type="primary" @click="setAddClass('D')">+D</ElButton>
           </ElCol>
-          <ElCol :span="2">
+          <ElCol :span="3">
             <ElButton type="primary" @click="setAddClass('O')">+O</ElButton>
           </ElCol>
-          <ElCol :span="2" :offset="2">
+          <ElCol :span="4" :offset="2">
             <ElButton type="primary" @click="addConfirm()">确定</ElButton>
           </ElCol>
-          <ElCol :span="2">
+          <ElCol :span="4">
             <ElButton type="primary" @click="addCancel()">取消</ElButton>
           </ElCol>
         </ElRow>
@@ -141,14 +137,14 @@ export default {
     return {
       ans: [],  // 识别答案
       trueAns: [  //真实答案
-        'A', 'A', 'A', 'A', 'A',
-        'A', 'A', 'A', 'A', 'A',
-        'B', 'B', 'B', 'B', 'B',
-        'B', 'B', 'B', 'B', 'B',
-        'C', 'C', 'C', 'C', 'C',
-        'C', 'C', 'C', 'C', 'C',
-        'D', 'D', 'D', 'D', 'D',
-        'D', 'D', 'D', 'D', 'D'
+      'D','B','C','B','A',
+      'C','B','D','C','A',
+      'B','B','D','C','D',
+      'A','B','A','D','A',
+      'B','D','C','D','B',
+      'B','D','C','C','A',
+      'A','B','C','B','D',
+      'D','A','D','B','C'
       ],
       addClass: '',  //当前正在增加的识别框内字母的类别
       bookNo: 1,
@@ -165,7 +161,7 @@ export default {
     lessScoreAns() {
       let items = [];
       for (let letter of this.ans) {
-        if (letter.score < 70) {
+        if (letter.score < 85) {
           items.push(letter);
         }
       }
@@ -184,6 +180,7 @@ export default {
       return _score * 2;
     }
   },
+  
   created() {
     let _this = this;
     document.onkeydown = function(e) {
@@ -220,7 +217,6 @@ export default {
     new P5(sketch.main)
     sketch.setGetImgData(this.getImgData); // 将本地的getImgData传到sketch中
     sketch.setTrueAns(this.trueAns);  // 传递真实答案
-    sketch.setSendResult(this.sendResult);
 
     this.bookNo = localStorage.getItem("bookNo");
     this.paperNo = localStorage.getItem("paperNo");
@@ -253,7 +249,9 @@ export default {
      */
     getImgData(imgData) {
       let data = {
-        "imageData": imgData
+        "imageData": imgData,
+        "bookNo": this.bookNo,
+        "paperNo": this.paperNo
       };
       this.$http.post('/upload/img', data)
         .then( res => {
@@ -276,17 +274,15 @@ export default {
           }
       })
     },
-    sendResult(imgData) {
+    sendResult() {
       let writingAns = this.ans.map(letter => letter.class);
       let data = {
-        "imageData": imgData,
         "bookNo": this.bookNo,
         "paperNo": this.paperNo,
         "writingAns": writingAns
       };
       this.$http.post('/upload/result', data)
         .then(res => {
-          window.console.log(res);
           if (res.data.status != 'done') {
               this.$message({
                 message: '错误！上传结果失败',
@@ -328,7 +324,7 @@ export default {
      * @author: khuqen
      */
     next() {
-      sketch.sendImg();
+      this.sendResult();
       // sketch.clear();
       // this.ans = [];
       // this.paperNo ++;
@@ -431,6 +427,7 @@ export default {
         return v1 - v2;
       });
       /* 按列排序，当行差不超过一个字母的高度时认为是同一行 */
+      // window.console.log(tAns);
       let i = 0;
       let j = 0;
       while (i < tAns.length) {

@@ -1,16 +1,26 @@
+<!--
+ * @Description: 
+ * @Autor: khuqen
+ * @Date: 2019-10-31 11:10:56
+ * @LastEditors: khuqen
+ * @LastEditTime: 2020-02-23 20:15:01
+ -->
 <template>
   <div id="app">
-    <Camera/>
+	<el-container>
+		<el-main>
+			<Home/>
+		</el-main>
+	</el-container>
   </div>
 </template>
 
 <script>
-import Camera from './components/Camera.vue'
-
+import Home from './components/Home'
 export default {
   name: 'app',
   components: {
-    Camera
+		Home
   }
 }
 </script>
