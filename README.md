@@ -1,4 +1,5 @@
 # 字符检测系统-前端
+  [字符检测系统-后端](https://github.com/khuqen/letters_detect_backend)
 
 ## 概述
 字符识别系统(可检测A、B、C、D、X)五类目标，用于试卷的选择题部分的修改。有如下的功能：
