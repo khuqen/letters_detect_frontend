@@ -3,7 +3,7 @@
  * @Autor: khuqen
  * @Date: 2020-03-12 17:26:07
  * @LastEditors: khuqen
- * @LastEditTime: 2020-03-25 22:02:40
+ * @LastEditTime: 2020-04-06 10:26:32
  -->
 
 <template>
@@ -12,25 +12,17 @@
             <span class="title">XXAI选择题阅卷系统</span>
         </el-menu-item>
         
-        <el-row type="flex" justify="end" v-if="loginLabel === '登录' ">            
-            <el-col :span="2">
-                <el-menu-item index="login">
-                    <span> 登录 </span>
-                </el-menu-item>
-            </el-col>
-            <el-col :span="2">
-                <el-menu-item index="register">
-                    <span>注册</span>
-                </el-menu-item>
-            </el-col>
-        </el-row>
-        <el-row type="flex" justify="end" v-else>
-            <el-col :span="2">
-                <el-menu-item @click="logout">
-                    <span> 注销 </span>
-                </el-menu-item>
-            </el-col>
-        </el-row>
+        <el-menu-item index="login" v-if="loginLabel === '登录'" style="float:right">
+            <span>登录</span>
+        </el-menu-item>
+        <el-menu-item index="register" v-if="loginLabel === '登录'" style="float:right">
+            <span>注册</span>
+        </el-menu-item>
+        <el-submenu v-if="loginLabel !== '登录'" style="float:right">
+            <template slot="title">{{ this.loginLabel }}</template>
+            <el-menu-item index="home">主页</el-menu-item>
+            <el-menu-item @click="logout">注销</el-menu-item>
+        </el-submenu>
     </el-menu>
 </template>
 <script>

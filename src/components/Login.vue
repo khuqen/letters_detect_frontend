@@ -3,7 +3,7 @@
  * @Autor: khuqen
  * @Date: 2020-03-12 16:42:08
  * @LastEditors: khuqen
- * @LastEditTime: 2020-03-25 22:05:49
+ * @LastEditTime: 2020-03-31 22:33:46
  -->
 <template>
     <div>
@@ -59,15 +59,17 @@ export default {
                 password: this.loginForm.password
             };
             // window.console.log(data);
-            this.$http.post('/auth', data).then(res => {
+            this.$http.post('/auth/login', data).then(res => {
                 this.$message('登录成功!');
-                let token = 'JWT ' + res.data.access_token;
-                localStorage.setItem('username', data.username);
-                localStorage.setItem('token', token);
-                bus.$emit('login');
-                this.$router.push({name: 'home'});
-            }).catch(() => {
-                this.$message.error('用户名或密码错误!');
+                if (res.data.result == 'Succeeded') {
+                    let token = 'Bearer ' + res.data.access_token;
+                    localStorage.setItem('username', data.username);
+                    localStorage.setItem('token', token);
+                    bus.$emit('login');
+                    this.$router.push({name: 'home'});
+                } else {
+                    this.$message.error('用户名或密码错误!');
+                }
             });
         },
         goRegister() {

@@ -3,51 +3,90 @@
  * @Autor: khuqen
  * @Date: 2020-02-23 20:11:54
  * @LastEditors: khuqen
- * @LastEditTime: 2020-03-25 20:26:20
+ * @LastEditTime: 2020-04-06 11:56:18
  -->
 
 <template>
     <div>
-        <el-row type="flex" justify="center" v-for="item in [1, 2, 3]" :key="item" style="margin:10px;">
+        <el-row v-if="!exams" type="flex" justify="center">
+            <span class="empty">当前没有任何考试!</span>
+        </el-row>
+        <el-row type="flex" justify="center" v-for="exam in exams" :key="exam.id" style="margin:10px;">
             <el-col :span="10">
                 <el-card shadow="hover">
                     <div slot="header" class="clearfix">
-                        <span>考试名称</span>
-                        <el-button style="float: right; padding: 3px 0" type="text" @click="enter">进入</el-button>
+                        <span class="exam-name">{{ exam.name }}</span>
+                        
+                        <el-button style="float: right; padding: 3px 2px; font-size:20px;" type="text" @click="enter(exam.id)">进入</el-button>
+                        <el-button style="float: right; padding: 3px 2px; font-size:20px;" type="text" @click="openModifyDialog(exam.id)">查看</el-button>
+                        <el-button style="float: right; padding: 3px 2px; font-size:20px;color: red" type="text" @click="confirmDelete(exam.id)">删除</el-button>
                     </div>
-                    <div v-for="o in 2" :key="o" class="text item">
-                        {{'列表内容 ' + o }}
-                    </div>
+                    <div class="text item">{{ exam.description }}</div>
                 </el-card>
             </el-col>
         </el-row>
-        <el-row type="flex" justify="center">
-            <el-col :span="2">
-                <el-button type="primary" @click="newDialogFormVisible = true">新建</el-button>
-            </el-col>
-            <el-col :span="2">
-                <el-button>添加</el-button>
-            </el-col>
-            <el-col :span="2">
-                <el-button @click="hekki">测试</el-button>
-            </el-col>
-        </el-row>
-        
-        <el-dialog title="新建" :visible.sync="newDialogFormVisible">
+        <div class="operater">
+            <el-row type="flex" justify="center">
+                <el-col :span="2">
+                    <el-button type="primary" @click="newDialogFormVisible = true">创建</el-button>
+                </el-col>
+                <el-col :span="2">
+                    <el-button>加入</el-button>
+                </el-col>
+            </el-row>
+        </div>
+
+        <!-- 删除确认 -->
+        <el-dialog
+        title="提示"
+        :visible.sync="deleteDialogVisible"
+        width="30%">
+        <span>确定删除该考试吗?</span>
+        <span slot="footer" class="dialog-footer">
+            <el-button @click="deleteDialogVisible = false">取 消</el-button>
+            <el-button type="primary" @click="deleteExam">确 定</el-button>
+        </span>
+        </el-dialog>
+
+
+         <!-- 新建考试对话框 -->
+        <el-dialog title="新建考试" :visible.sync="newDialogFormVisible">
             <el-form :model="newForm">
-                <el-form-item label="活动名称" label-width="120px">
-                <el-input v-model="newForm.name" autocomplete="off"></el-input>
+                <el-form-item label="考试名称" label-width="120px">
+                    <el-input v-model="newForm.name" autocomplete="off"></el-input>
                 </el-form-item>
-                <el-form-item label="活动区域" label-width="120px">
-                <el-select v-model="newForm.region" placeholder="请选择活动区域">
-                    <el-option label="区域一" value="shanghai"></el-option>
-                    <el-option label="区域二" value="beijing"></el-option>
-                </el-select>
+                <el-form-item label="考试描述" label-width="120px">
+                    <el-input v-model="newForm.description" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="标准答案" label-width="120px">
+                    <el-input v-model="newForm.std_answer" autocomplete="off"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click="newDialogFormVisible = false">取 消</el-button>
-                <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+                <el-button type="primary" @click="createExam">确 定</el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 修改考试对话框 -->
+        <el-dialog title="考试信息" :visible.sync="modifyDialogFormVisible">
+            <el-form :model="modifyForm">
+                <el-form-item label="考试ID" label-width="120px">
+                    <el-input disabled v-model="modifyForm.id" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="考试名称" label-width="120px">
+                    <el-input v-model="modifyForm.name" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="考试描述" label-width="120px">
+                    <el-input v-model="modifyForm.description" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="标准答案" label-width="120px">
+                    <el-input v-model="modifyForm.std_answer" autocomplete="off"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="modifyDialogFormVisible = false">取 消</el-button>
+                <el-button type="primary" @click="modifyExam">修 改</el-button>
             </div>
         </el-dialog>
     </div>
@@ -61,25 +100,118 @@ export default {
         return {
             newDialogFormVisible: false,
             addDialogFormVisible: false,
+            modifyDialogFormVisible: false,
+            deleteDialogVisible: false,
             newForm: {
                 name: '',
-                region: ''
-            }
+                description: '',
+                std_answer: ''
+            },
+            modifyForm: {
+                id: '',
+                name: '',
+                description: '',
+                std_answer: ''
+            },
+            oldExamForm: {
+                name: '',
+                description: '',
+                std_answer: ''
+            },
+            modifiedID: '',
+            exams: null,
+            deleteExamID: ''
         }
     },
     beforeCreate() {
         let token = localStorage.getItem('token');
         if(!token) {
-            this.$$router.push({name: "login"});
+            this.$router.push({name: "login"});
         }
     },
+    created() {
+        this.getAllExams();
+    },
     methods: {
-        enter() {
-            this.$router.push({name: 'camera'});
+        enter(id) {
+            this.$router.push({
+                name: 'camera',
+                query: {
+                    examID: id
+                }
+            });
         },
-        hekki() {
-            this.$http.get('protected').then(res => {
-                this.$message(res.data);
+        getAllExams() {
+            this.$http.get('exam/get-user-exam').then(res => {
+                this.exams = res.data.exam_info;
+            });
+        },
+        createExam() {
+            let data = this.newForm;
+            let std_ans = [];
+            this.newForm.std_answer.split(',').forEach(item => {std_ans.push(item)});
+            data.std_answer = std_ans;
+            this.$http.post('/exam/create', data).then(res => {
+                if (res.data.result == 'Succeeded') {
+                    this.newDialogFormVisible = false;
+                    this.getAllExams();
+                } else {
+                    this.$message.error('考试名称已存在!');
+                }
+            });
+        },
+        
+        openModifyDialog(id) {
+            this.modifiedID = id;
+            let data = {id: id};
+            // window.console.log(data);
+            this.$http.post('exam/get-exam-info', data).then(res => {
+                this.modifyForm = res.data;
+                this.modifyForm.std_answer = res.data.std_answer.toString();
+                Object.assign(this.oldExamForm, this.modifyForm);
+                this.modifyDialogFormVisible = true;
+            });
+        },
+        modifyExam() {
+            let data = {};
+            data.id = this.modifiedID;
+            if (this.modifyForm.name != this.oldExamForm.name)
+                data.name = this.modifyForm.name;
+            if (this.modifyForm.description != this.oldExamForm.description)
+                data.description = this.modifyForm.description;
+            data.std_answer = [];
+            let std_ans = this.modifyForm.std_answer.split(',');
+            let old_std_ans = this.oldExamForm.std_answer.split(',');
+            for (let i = 0; i < std_ans.length; ++i) {
+                if (std_ans[i] != old_std_ans) {
+                    let obj = {
+                        problem_no: i + 1,
+                        problem_score: parseInt(std_ans[i][1]),
+                        content: std_ans[i][0]
+                    };
+                    data.std_answer.push(obj);
+                }
+            }
+            this.$http.post('/exam/modify', data).then(res => {
+                if (res.data.result == 'Succeeded') {
+                    this.modifyDialogFormVisible = false;
+                    this.$message.info('修改成功!');
+                    this.getAllExams();
+                }
+            });
+        },
+        confirmDelete(id) {
+            this.deleteDialogVisible = true;
+            this.deleteExamID = id;
+        },
+        deleteExam(id) {
+            let data = {
+                examID: this.deleteExamID
+            };
+            this.$http.post('exam/delete', data).then(res => {
+                this.$message('删除成功!');
+                this.deleteDialogVisible = false;
+                this.getAllExams();
             })
         }
     }
@@ -106,5 +238,21 @@ clear: both
 
 .box-card {
 width: 480px;
+}
+.exam-name {
+    font-size: 26px;
+    font-weight: bolder;
+}
+.empty {
+    font-size: 2rem;
+    margin: 20px 20px;
+    color: grey;
+}
+.operater {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    position: fixed;
+    bottom: 20px;
 }
 </style>

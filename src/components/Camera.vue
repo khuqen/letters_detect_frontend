@@ -3,7 +3,7 @@
  * @Autor: khuqen
  * @Date: 2019-10-31 11:10:56
  * @LastEditors: khuqen
- * @LastEditTime: 2020-02-23 20:15:31
+ * @LastEditTime: 2020-04-06 11:17:06
  -->
 
 <template>
@@ -137,15 +137,16 @@ export default {
     return {
       ans: [],  // 识别答案
       trueAns: [  //真实答案
-      'D','B','C','B','A',
-      'C','B','D','C','A',
-      'B','B','D','C','D',
-      'A','B','A','D','A',
-      'B','D','C','D','B',
-      'B','D','C','C','A',
-      'A','B','C','B','D',
-      'D','A','D','B','C'
+      // 'D','B','C','B','A',
+      // 'C','B','D','C','A',
+      // 'B','B','D','C','D',
+      // 'A','B','A','D','A',
+      // 'B','D','C','D','B',
+      // 'B','D','C','C','A',
+      // 'A','B','C','B','D',
+      // 'D','A','D','B','C'
       ],
+      trueScore: [],
       addClass: '',  //当前正在增加的识别框内字母的类别
       bookNo: 1,
       paperNo: 1
@@ -174,15 +175,21 @@ export default {
       let _score = 0;
       for (let i = 0; i < this.ans.length; i++) {
         if(this.ans[i].class == this.trueAns[i]) {
-          _score++;
+          _score = _score + this.trueScore[i];
         }
       }
-      return _score * 2;
+      return _score;
     }
   },
   
   created() {
     let _this = this;
+    let data = {id: parseInt(this.$route.query.examID)};
+    // window.console.log('data', data);
+    this.$http.post('exam/get-exam-info', data).then(res => {
+      this.trueAns = res.data.std_answer.map(item => item[0]);
+      this.trueScore = res.data.std_answer.map(item => parseInt(item[1]));
+    });
     document.onkeydown = function(e) {
       let key = window.event.keyCode;
       if (key == 49) {  // 1
@@ -212,9 +219,9 @@ export default {
     };
   },
   mounted() {
-    sketch = require('../js/sketch.js')
-    const P5 = require('p5')
-    new P5(sketch.main)
+    sketch = require('../js/sketch.js');
+    const P5 = require('p5');
+    new P5(sketch.main);
     sketch.setGetImgData(this.getImgData); // 将本地的getImgData传到sketch中
     sketch.setTrueAns(this.trueAns);  // 传递真实答案
 
@@ -251,10 +258,11 @@ export default {
       let data = {
         "imageData": imgData,
         "bookNo": this.bookNo,
-        "paperNo": this.paperNo
+        "paperNo": this.paperNo,
+        "letterNum": this.trueAns.length
       };
-      this.$http.post('/upload/img', data)
-        .then( res => {
+      this.$http.post('paper/upload/img', data)
+        .then(res => {
           this.ans = [];
           for (let letter of res.data.letters) {
             this.ans.push(letter);
@@ -277,26 +285,18 @@ export default {
     sendResult() {
       let writingAns = this.ans.map(letter => letter.class);
       let data = {
-        "bookNo": this.bookNo,
-        "paperNo": this.paperNo,
-        "writingAns": writingAns
+        "examID": parseInt(this.$route.query.examID),
+        "book": this.bookNo,
+        "page": this.paperNo,
+        "answer": writingAns
       };
-      this.$http.post('/upload/result', data)
+      this.$http.post('paper/upload/answer', data)
         .then(res => {
-          if (res.data.status != 'done') {
-              this.$message({
-                message: '错误！上传结果失败',
-                type: 'error',
-                duration: 1500
-            });
-          }
-          this.ans = [];
-          this.paperNo++;
-          sketch.clear();
+          window.console.log(res.data);
           localStorage.setItem("bookNo", this.bookNo);
           localStorage.setItem("paperNo", this.paperNo);
-      }) 
-      window.console.log(data);     
+      });
+      window.console.log(data);
     },
     /**
      * @description: 检测
@@ -325,9 +325,9 @@ export default {
      */
     next() {
       this.sendResult();
-      // sketch.clear();
-      // this.ans = [];
-      // this.paperNo ++;
+      sketch.clear();
+      this.ans = [];
+      this.paperNo ++;
     },
     /**
      * @description: 对低置信率的字母进行确认
