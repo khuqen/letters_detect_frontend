@@ -3,7 +3,7 @@
  * @Autor: khuqen
  * @Date: 2019-10-31 11:10:56
  * @LastEditors: khuqen
- * @LastEditTime: 2020-04-06 12:20:10
+ * @LastEditTime: 2020-04-08 23:24:10
  */
 import Vue from 'vue'
 import App from './App.vue'
@@ -11,6 +11,7 @@ import './plugins/element.js'
 import axios from 'axios'
 import router from "./router.js"
 
+//请求拦截器，将需要附带令牌的带上令牌
 
 axios.interceptors.request.use((config) => {
 	if (['/auth', '/auth/register'].indexOf(config.url) === -1) {
@@ -21,22 +22,20 @@ axios.interceptors.request.use((config) => {
 	}
 	return config;
 });
-
+// 响应拦截器，令牌无效时需重新登录
 axios.interceptors.response.use(
 	response => {
-	  //拦截响应，做统一处理 
-	  if (response.data.code) {
-		if (response.data.msg == 'Token has expired') {
-			router.replace({
-				name: 'login',
-			});
-		}
-	  }
-	  return response;
+	//拦截响应，做统一处理 
+	if (response.data.msg == 'Token has expired') {
+		router.replace({
+			name: 'login',
+		});
+	}
+		return response;
 	},
 	//接口错误状态处理，也就是说无响应时的处理
 	error => {
-	  return Promise.reject(error.response.status); // 返回接口返回的错误信息
+		return Promise.reject(error.response.status); // 返回接口返回的错误信息
 });
 
 

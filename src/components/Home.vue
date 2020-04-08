@@ -3,7 +3,7 @@
  * @Autor: khuqen
  * @Date: 2020-02-23 20:11:54
  * @LastEditors: khuqen
- * @LastEditTime: 2020-04-06 11:56:18
+ * @LastEditTime: 2020-04-08 23:43:33
  -->
 
 <template>
@@ -16,10 +16,9 @@
                 <el-card shadow="hover">
                     <div slot="header" class="clearfix">
                         <span class="exam-name">{{ exam.name }}</span>
-                        
-                        <el-button style="float: right; padding: 3px 2px; font-size:20px;" type="text" @click="enter(exam.id)">进入</el-button>
-                        <el-button style="float: right; padding: 3px 2px; font-size:20px;" type="text" @click="openModifyDialog(exam.id)">查看</el-button>
-                        <el-button style="float: right; padding: 3px 2px; font-size:20px;color: red" type="text" @click="confirmDelete(exam.id)">删除</el-button>
+                        <el-button style="float: right; padding: 3px 2px; font-size:16px;" type="text" @click="enter(exam.id)">进入</el-button>
+                        <el-button style="float: right; padding: 3px 2px; font-size:16px;" type="text" @click="openModifyDialog(exam.id)">查看</el-button>
+                        <el-button style="float: right; padding: 3px 2px; font-size:16px;color: red" type="text" @click="confirmDelete(exam.id)">删除</el-button>
                     </div>
                     <div class="text item">{{ exam.description }}</div>
                 </el-card>
@@ -31,23 +30,33 @@
                     <el-button type="primary" @click="newDialogFormVisible = true">创建</el-button>
                 </el-col>
                 <el-col :span="2">
-                    <el-button>加入</el-button>
+                    <el-button @click="plusDialogVisible = true">加入</el-button>
                 </el-col>
             </el-row>
         </div>
 
         <!-- 删除确认 -->
-        <el-dialog
-        title="提示"
-        :visible.sync="deleteDialogVisible"
-        width="30%">
-        <span>确定删除该考试吗?</span>
-        <span slot="footer" class="dialog-footer">
-            <el-button @click="deleteDialogVisible = false">取 消</el-button>
-            <el-button type="primary" @click="deleteExam">确 定</el-button>
-        </span>
+        <el-dialog title="提示" :visible.sync="deleteDialogVisible" width="30%">
+            <span>确定删除该考试吗?</span>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="deleteDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="deleteExam">确 定</el-button>
+            </span>
         </el-dialog>
 
+
+        <!-- 加入考试对话框 -->
+        <el-dialog title="加入考试" :visible.sync="plusDialogVisible" width="30%">
+            <el-form :model="plusForm">
+                <el-form-item label="考试ID" label-width="120px">
+                    <el-input v-model="plusForm.id" autocomplete="off"></el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="plusDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="plusExam">确 定</el-button>
+            </span>
+        </el-dialog>
 
          <!-- 新建考试对话框 -->
         <el-dialog title="新建考试" :visible.sync="newDialogFormVisible">
@@ -59,7 +68,7 @@
                     <el-input v-model="newForm.description" autocomplete="off"></el-input>
                 </el-form-item>
                 <el-form-item label="标准答案" label-width="120px">
-                    <el-input v-model="newForm.std_answer" autocomplete="off"></el-input>
+                    <el-input v-model="newForm.std_answer" autocomplete="off" type="textarea" autosize></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -81,7 +90,7 @@
                     <el-input v-model="modifyForm.description" autocomplete="off"></el-input>
                 </el-form-item>
                 <el-form-item label="标准答案" label-width="120px">
-                    <el-input v-model="modifyForm.std_answer" autocomplete="off"></el-input>
+                    <el-input v-model="modifyForm.std_answer" autocomplete="off" type="textarea" autosize></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -102,10 +111,14 @@ export default {
             addDialogFormVisible: false,
             modifyDialogFormVisible: false,
             deleteDialogVisible: false,
+            plusDialogVisible: false,
             newForm: {
                 name: '',
                 description: '',
                 std_answer: ''
+            },
+            plusForm: {
+                id: ''
             },
             modifyForm: {
                 id: '',
@@ -124,15 +137,18 @@ export default {
         }
     },
     beforeCreate() {
+        /* 若未登录，重定向登录界面 */
         let token = localStorage.getItem('token');
         if(!token) {
             this.$router.push({name: "login"});
         }
     },
     created() {
+        /* 创建时，请求所有的用户考试 */
         this.getAllExams();
     },
     methods: {
+        /* 进入某个考试 */
         enter(id) {
             this.$router.push({
                 name: 'camera',
@@ -141,11 +157,13 @@ export default {
                 }
             });
         },
+        /* 获取属于该用户的所有考试信息 */
         getAllExams() {
             this.$http.get('exam/get-user-exam').then(res => {
                 this.exams = res.data.exam_info;
             });
         },
+        /* 创建一个考试 */
         createExam() {
             let data = this.newForm;
             let std_ans = [];
@@ -160,7 +178,7 @@ export default {
                 }
             });
         },
-        
+        /* 获取考试信息，并打开修改考试对话框 */
         openModifyDialog(id) {
             this.modifiedID = id;
             let data = {id: id};
@@ -172,6 +190,7 @@ export default {
                 this.modifyDialogFormVisible = true;
             });
         },
+        /* 与之前的考试信息对比，找到修改部分，进行修改 */
         modifyExam() {
             let data = {};
             data.id = this.modifiedID;
@@ -200,10 +219,12 @@ export default {
                 }
             });
         },
+        /* 打开删除确认对话框，并将正在删除的考试id保存 */
         confirmDelete(id) {
             this.deleteDialogVisible = true;
             this.deleteExamID = id;
         },
+        /* 删除一个考试 */
         deleteExam(id) {
             let data = {
                 examID: this.deleteExamID
@@ -213,6 +234,14 @@ export default {
                 this.deleteDialogVisible = false;
                 this.getAllExams();
             })
+        },
+        /* 加入到一场考试中 */
+        plusExam() {
+            let data = {
+                examID: parseInt(this.plusForm.id)
+            };
+            // 战时先关闭对话框
+            this.plusDialogVisible = false;
         }
     }
 }
