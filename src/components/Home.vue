@@ -103,9 +103,9 @@
 
 
         <!-- 查看考试对话框 -->
-        <el-dialog title="查看统计信息" :visible.sync="detailDialogVisible">
+        <el-dialog title="查看答案信息" :visible.sync="detailDialogVisible">
             <el-input v-model="detailBook" placeholder="请输入卷号" style="width:40%"></el-input>
-            <el-table :data="tableData" max-height="250" style="width: 100%">
+            <el-table :data="tableData" max-height="300" style="width: 100%">
                 <el-table-column
                     prop="paper"
                     width="50"
@@ -245,10 +245,11 @@ export default {
                 }
             });
         },
-        /* 打开考试统计信息 */
+        /* 打开考试答案信息 */
         openDeitailDialog(id) {
             this.detailID = id;
             this.detailDialogVisible = true;
+            this.detailBook = ''; 
         },
         openStatisticsDialog(id) {
             this.statisticsID = id;

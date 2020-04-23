@@ -272,7 +272,7 @@ export default {
             this.drawScore();
           }
           /* 识别数量不够或者超出，提醒用户 */
-          if (res.data.valid == false) {
+          if (this.ans.length !== this.trueAns.length) {
             // alert('识别不完整！！！');
             this.$message({
               message: '注意! 识别数量与预期不符合',

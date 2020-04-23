@@ -26,8 +26,8 @@ let firstPressed = true;    //鼠标是否第一次被按压
 
 /* config  */
 let scale = 1.0;           // 放大规模
-let canvasWidth = 800;      // 画布宽度
-let canvasHeight = 920;     // 画布高度
+let canvasWidth = 700;      // 画布宽度
+let canvasHeight = 800;     // 画布高度
 let maxResolutionWidth = 2592;    // 分辨率
 let maxResolutionHeight = 1944;
 
