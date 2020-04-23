@@ -52,6 +52,10 @@ export default {
             }
         }
     },
+    created() {
+        if (localStorage.getItem('username'))
+            this.$router.replace({name: 'home'});
+    },
     methods: {
         /* 登录 */
         login() {

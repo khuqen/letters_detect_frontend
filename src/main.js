@@ -6,10 +6,13 @@
  * @LastEditTime: 2020-04-08 23:24:10
  */
 import Vue from 'vue'
+import VePie from 'v-charts/lib/pie.common'
 import App from './App.vue'
 import './plugins/element.js'
 import axios from 'axios'
 import router from "./router.js"
+
+
 
 //请求拦截器，将需要附带令牌的带上令牌
 
@@ -26,7 +29,7 @@ axios.interceptors.request.use((config) => {
 axios.interceptors.response.use(
 	response => {
 	//拦截响应，做统一处理 
-	if (response.data.msg == 'Token has expired') {
+	if (response.data.msg === 'Token has expired') {
 		router.replace({
 			name: 'login',
 		});
@@ -35,7 +38,11 @@ axios.interceptors.response.use(
 	},
 	//接口错误状态处理，也就是说无响应时的处理
 	error => {
-		return Promise.reject(error.response.status); // 返回接口返回的错误信息
+		if (error.response.status == 401) {
+			router.replace({
+				name: 'login',
+			});
+		}
 });
 
 
@@ -45,6 +52,7 @@ axios.defaults.baseURL = 'http://10.112.79.202:5828';
 Vue.prototype.$http = axios;
 Vue.config.productionTip = false
 
+Vue.component(VePie.name, VePie)
 
 new Vue({
 	router,

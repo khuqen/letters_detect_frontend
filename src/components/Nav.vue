@@ -18,10 +18,10 @@
         <el-menu-item index="register" v-if="loginLabel === '登录'" style="float:right">
             <span>注册</span>
         </el-menu-item>
-        <el-submenu v-if="loginLabel !== '登录'" style="float:right">
+        <el-submenu index="nologin" v-if="loginLabel !== '登录'" style="float:right">
             <template slot="title">{{ this.loginLabel }}</template>
             <el-menu-item index="home">主页</el-menu-item>
-            <el-menu-item @click="logout">注销</el-menu-item>
+            <el-menu-item index="logout" @click="logout">注销</el-menu-item>
         </el-submenu>
     </el-menu>
 </template>

@@ -17,7 +17,9 @@
                     <div slot="header" class="clearfix">
                         <span class="exam-name">{{ exam.name }}</span>
                         <el-button style="float: right; padding: 3px 2px; font-size:16px;" type="text" @click="enter(exam.id)">进入</el-button>
-                        <el-button style="float: right; padding: 3px 2px; font-size:16px;" type="text" @click="openModifyDialog(exam.id)">查看</el-button>
+                        <el-button style="float: right; padding: 3px 2px; font-size:16px;" type="text" @click="openModifyDialog(exam.id)">修改</el-button>
+                        <el-button style="float: right; padding: 3px 2px; font-size:16px;" type="text" @click="openDeitailDialog(exam.id)">查看</el-button>
+                        <el-button style="float: right; padding: 3px 2px; font-size:16px;" type="text" @click="openStatisticsDialog(exam.id)">统计</el-button>
                         <el-button style="float: right; padding: 3px 2px; font-size:16px;color: red" type="text" @click="confirmDelete(exam.id)">删除</el-button>
                     </div>
                     <div class="text item">{{ exam.description }}</div>
@@ -98,11 +100,54 @@
                 <el-button type="primary" @click="modifyExam">修 改</el-button>
             </div>
         </el-dialog>
+
+
+        <!-- 查看考试对话框 -->
+        <el-dialog title="查看统计信息" :visible.sync="detailDialogVisible">
+            <el-input v-model="detailBook" placeholder="请输入卷号" style="width:40%"></el-input>
+            <el-table :data="tableData" max-height="250" style="width: 100%">
+                <el-table-column
+                    prop="paper"
+                    width="50"
+                    fixed
+                    label=" ">
+                </el-table-column>
+                <el-table-column 
+                    v-for="item in ansIndex"
+                    :key="item"
+                    :prop="item"
+                    :label="item"
+                ></el-table-column>
+            </el-table>
+        </el-dialog>
+
+        <!-- 统计考试对话框 -->
+        <el-dialog title="查看统计信息" :visible.sync="statisticsDialogVisible">
+            <el-row :gutter="20">
+                <el-col :span="8">
+                    <el-input v-model="problem_no" placeholder="请输入题号"></el-input>
+                </el-col>
+                <el-col :span="4">
+                    <el-button size="mini" @click="getChartData">查看</el-button>
+                </el-col>
+            </el-row>
+            <el-row type="flex" justify="center">
+                <el-col>
+                    <ve-pie :data="chartData"></ve-pie>
+                </el-col>
+            </el-row>
+        </el-dialog>
     </div>
 </template>
 
 <script>
-
+function debounce(fn, wait) {     
+    var timeout = null;    
+    return function() {        
+        if(timeout !== null)   clearTimeout(timeout);        
+        timeout = setTimeout(fn, wait);    
+    }
+}
 export default {
     name: 'Home',
     data() {
@@ -112,6 +157,8 @@ export default {
             modifyDialogFormVisible: false,
             deleteDialogVisible: false,
             plusDialogVisible: false,
+            detailDialogVisible: false,
+            statisticsDialogVisible: false,
             newForm: {
                 name: '',
                 description: '',
@@ -132,8 +179,27 @@ export default {
                 std_answer: ''
             },
             modifiedID: '',
+            detailID: '',
             exams: null,
-            deleteExamID: ''
+            deleteExamID: '',
+            statisticsID: '',
+
+            activeName: '',
+            tableData: [],
+            ansIndex: [],
+            detailBook: '',
+            problem_no: '',
+
+            chartData: {
+                columns: ['选项', '数量'],
+                rows: [
+                    {'选项': 'A', '数量': 0},
+                    {'选项': 'B', '数量': 0},
+                    {'选项': 'C', '数量': 0},
+                    {'选项': 'D', '数量': 0},
+                ]
+            }
+            
         }
     },
     beforeCreate() {
@@ -146,6 +212,7 @@ export default {
     created() {
         /* 创建时，请求所有的用户考试 */
         this.getAllExams();
+        this.getTableDataDe = debounce(this.getTableData, 500);
     },
     methods: {
         /* 进入某个考试 */
@@ -177,6 +244,15 @@ export default {
                     this.$message.error('考试名称已存在!');
                 }
             });
+        },
+        /* 打开考试统计信息 */
+        openDeitailDialog(id) {
+            this.detailID = id;
+            this.detailDialogVisible = true;
+        },
+        openStatisticsDialog(id) {
+            this.statisticsID = id;
+            this.statisticsDialogVisible = true;
         },
         /* 获取考试信息，并打开修改考试对话框 */
         openModifyDialog(id) {
@@ -242,6 +318,59 @@ export default {
             };
             // 战时先关闭对话框
             this.plusDialogVisible = false;
+        },
+        getTableData() {
+            let data = {
+                    examID: parseInt(this.detailID),
+                    book: parseInt(this.detailBook)
+                };
+                let isFirst = true;
+                this.$http.post('exam/get-book-answer', data).then(res => {
+                    this.tableData = []; 
+                    this.ansIndex = [];
+                    for (let key in res.data) {
+                        let tmp = {};
+                        tmp.paper = key;
+                        if (isFirst) {
+                            for (let i = 0; i < res.data[key].length; ++i) {
+                                this.ansIndex.push((i + 1) + '');
+                            }
+                            isFirst = false;
+                        }
+                        for (let i = 0; i < res.data[key].length; ++i) {
+                            tmp[i + 1] = res.data[key][i];
+                        }
+                        this.tableData.push(tmp);
+                    }
+            });
+        },
+        getChartData() {
+            let data = {
+                examID: parseInt(this.statisticsID)
+            };
+            this.$http.post('exam/get-total-answer', data).then(res => {
+                let tmpData = {
+                    'A': 0,
+                    'B': 0,
+                    'C': 0,
+                    'D': 0
+                };
+                Object.assign(tmpData, res.data[this.problem_no]);
+                this.chartData ={
+                    columns: ['选项', '数量'],
+                    rows: [
+                        {'选项': 'A', '数量': tmpData['A']},
+                        {'选项': 'B', '数量': tmpData['B']},
+                        {'选项': 'C', '数量': tmpData['C']},
+                        {'选项': 'D', '数量': tmpData['D']},
+                    ]
+                };
+            })
+        }
+    },
+    watch: {
+        detailBook(val) {
+            this.getTableDataDe();
         }
     }
 }
