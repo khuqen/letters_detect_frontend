@@ -315,10 +315,16 @@ export default {
         /* 加入到一场考试中 */
         plusExam() {
             let data = {
-                examID: parseInt(this.plusForm.id)
+                id: parseInt(this.plusForm.id)
             };
-            // 战时先关闭对话框
-            this.plusDialogVisible = false;
+            this.$http.post('exam/get-exam-info', data).then(res => {
+                if (res.result === 'Failed') {
+                    this.$message.error('考试不存在!'); 
+                } else {
+                    this.$message('加入成功!');
+                }
+                this.plusDialogVisible = false;
+            })        
         },
         getTableData() {
             let data = {
