@@ -49,7 +49,7 @@ axios.interceptors.response.use(
 axios.defaults.headers.post['Content-Type'] = 'application/json; charset=UTF-8';
 // axios.defaults.baseURL = 'http://10.112.79.202:5828';
 // axios.defaults.baseURL = 'http://10.112.79.202:5001';
-axios.defaults.baseURL = 'http://10.112.181.126:5828';
+axios.defaults.baseURL = 'https://10.112.181.126:8010';
 Vue.prototype.$http = axios;
 Vue.config.productionTip = false
 

@@ -14,10 +14,14 @@
 
 <script>
 import Nav from './components/Nav'
+import warterMark from './warterMark'
 export default {
   name: 'app',
   components: {
 	Nav
+  },
+  mounted() {
+    warterMark.set('bupt');
   }
 }
 </script>
