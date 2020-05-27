@@ -21,7 +21,7 @@ export default {
 	Nav
   },
   mounted() {
-    warterMark.set('bupt');
+    warterMark.set('SuperABC');
   }
 }
 </script>

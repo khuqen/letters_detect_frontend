@@ -136,16 +136,7 @@ export default {
   data() {
     return {
       ans: [],  // 识别答案
-      trueAns: [  //真实答案
-      // 'D','B','C','B','A',
-      // 'C','B','D','C','A',
-      // 'B','B','D','C','D',
-      // 'A','B','A','D','A',
-      // 'B','D','C','D','B',
-      // 'B','D','C','C','A',
-      // 'A','B','C','B','D',
-      // 'D','A','D','B','C'
-      ],
+      trueAns: [],  //真实答案]
       trueScore: [],
       addClass: '',  //当前正在增加的识别框内字母的类别
       bookNo: 1,
@@ -188,6 +179,7 @@ export default {
     // window.console.log('data', data);
     this.$http.post('exam/get-exam-info', data).then(res => {
       this.trueAns = res.data.std_answer.map(item => item[0]);
+      sketch.setTrueAns(this.trueAns);  // 传递真实答案
       this.trueScore = res.data.std_answer.map(item => parseInt(item[1]));
     });
     document.onkeydown = function(e) {
@@ -223,7 +215,6 @@ export default {
     const P5 = require('p5');
     new P5(sketch.main);
     sketch.setGetImgData(this.getImgData); // 将本地的getImgData传到sketch中
-    sketch.setTrueAns(this.trueAns);  // 传递真实答案
 
     this.bookNo = localStorage.getItem("bookNo");
     this.paperNo = localStorage.getItem("paperNo");

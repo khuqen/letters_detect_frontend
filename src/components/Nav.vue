@@ -9,7 +9,7 @@
 <template>
     <el-menu mode="horizontal" router>
         <el-menu-item index="home">
-            <span class="title">XXAI阅卷系统</span>
+            <span class="title">SuperABC</span>
         </el-menu-item>
         
         <el-menu-item index="login" v-if="loginLabel === '登录'" style="float:right">
